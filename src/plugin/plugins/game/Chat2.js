@@ -11,7 +11,9 @@ export default class Chat extends GamePlugin {
         this.events = {
             'send_message': this.sendMessage,
             'send_safe': this.sendSafe,
-            'send_emote': this.sendEmote
+            'send_emote': this.sendEmote,
+            'send_joke': this.sendJoke,
+            'send_tour': this.sendTour
         }
 
         this.commands = {
@@ -20,9 +22,7 @@ export default class Chat extends GamePlugin {
             'ac': this.addCoins,
             'jr': this.joinRoom,
             'id': this.id,
-            'users': this.userPopulation,
-            'say': this.broadcast
-            // 'nick': this.setNickname
+            'users': this.userPopulation
         }
 
         this.bindCommands()
@@ -84,10 +84,35 @@ export default class Chat extends GamePlugin {
         user.room.send(user, 'send_emote', { id: user.id, emote: args.emote }, [user], true)
     }
 
+    sendJoke(args, user) {
+        if (!hasProps(args, 'joke')) {
+            return
+        }
 
-    /************
-     * COMMANDS *
-     ************/
+        if (!isNumber(args.joke)) {
+            return
+        }
+
+        user.room.send(user, 'send_joke', { id: user.id, joke: args.joke }, [user], true)
+    }
+
+    sendTour(args, user) {
+        if (!hasProps(args, 'roomId')) {
+            return
+        }
+
+        if (!isNumber(args.roomId)) {
+            return
+        }
+
+        if (args.roomId !== user.room.id) {
+            return
+        }
+
+        user.room.send(user, 'send_tour', { id: user.id, roomId: args.roomId }, [user], true)
+    }
+
+    // Commands
 
     bindCommands() {
         for (let command in this.commands) {
@@ -157,51 +182,5 @@ export default class Chat extends GamePlugin {
     userPopulation(args, user) {
         user.send('error', { error: `Users online: ${this.handler.population}` })
     }
-
-    broadcast(args, user, message) {
-        if (user.isModerator) {
-            let userIn = args.join(" ");
-            let msg = "~~~~~~~~~~~~\n" + "⚠️ Mod Message ⚠️" + "\n~~~~~~~~~~~~\n\n" + userIn + "\n\n❥" + user.username;
-                        
-            for (let u of Object.values(this.handler.users)) {
-                u.send('error', {error: msg})
-            }
-        }
-    }
-
-    // setNickname(args, user) {
-    //     if (user.isModerator) {
-    //         if (args[0] == undefined || args[0] == "") {
-    //             user.send('error', { error: `Invalid nickname.` })
-    //         }
-    //         else {
-    //             // let nick = Array.prototype.slice.call(args).join(" ")
-    //             // user.updateNickname(nick)
-
-    //             let roomUser = user.room.id
-    //             let roomLoad = 42069
-    //             this.plugins.join.joinRoom({ room: roomLoad }, user)
-    //             this.plugins.join.joinRoom({ room: roomUser }, user)
-    //         }
-    //     }
-    // }
-    
-        // setNickname(args, user) {
-        //     if (user.isModerator) {
-        //         if (args[0] == undefined || args[0] == "") {
-        //             user.send('error', { error: `Invalid nickname.` })
-        //         }
-        //         else {
-        //             let nick = Array.prototype.slice.call(args).join(" ")
-    
-        //             user.updateNickname(nick)
-    
-        //             let roomUser = user.room.id
-        //             let roomLoad = 42069
-        //             this.plugins.join.joinRoom({ room: roomLoad }, user)
-        //             this.plugins.join.joinRoom({ room: roomUser }, user)
-        //         }
-        //     }
-        // }
 
 }
